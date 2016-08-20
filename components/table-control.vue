@@ -1,7 +1,7 @@
 <template>
-	<a href="{{linkDetail}}" v-if="!hideDetail">Detail</a>
-	<a href="{{linkEdit}}" v-if="!hideEdit">Edit</a>
-	<a href="{{linkDelete}}" v-if="!hideDelete">Delete</a>
+	<span v-for="link in links">
+		<a href="{{ link.link }}" :class="className(link.className)">{{{ link.text }}}</a>
+	</span>
 </template>
 
 <script>
@@ -10,12 +10,15 @@
 			return {};
 		},
 		props: {
-			hideDetail: { type:Boolean, default: false},
-			hideEdit: { type:Boolean, default: false},
-			hideDelete: { type:Boolean, default: false},
-			linkDetail: { type:String, default: null},
-			linkEdit: { type:String, default: null},
-			linkDelete: { type:String, default: null}
+			links:		{ type: Array, default: function () { return [];} }
+		},
+		methods: {
+			className: function (style) {
+				if (typeof style == 'undefined')
+					return [];
+
+				return style.split(" ");
+			}
 		},
 		events: {}
 	}

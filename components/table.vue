@@ -53,12 +53,7 @@
 			<tbody v-if="tmpData.length > 0">
 				<tr is="table-row" v-for="(index, data) in mappedData" :data-row="data" keep-alive>
 					<td is="table-control"
-					:link-detail="generateLink('detail', index)"
-					:link-edit="generateLink('edit', index)"
-					:link-delete="generateLink('delete', index)"
-					:hide-detail="hideDetail"
-					:hide-edit="hideEdit"
-					:hide-delete="hideDelete"
+					:links="generateLink(index)"
 					></td>
 				</tr>
 			</tbody>
@@ -106,12 +101,7 @@
 			dataSrc:		{ type: String, required: true },
 			dataMap:		{ type: Array, required: true },
 			dataOptions:	{ type: Object, default: function () { return {};} },
-			linkDetail:		{ type: String, default: null },
-			linkEdit:		{ type: String, default: null },
-			linkDelete:		{ type: String, default: null },
-			hideDetail:		{ type:Boolean, default: false},
-			hideEdit:		{ type:Boolean, default: false},
-			hideDelete:		{ type:Boolean, default: false}
+			dataLink:		{ type: Array, default: function () { return {};} }
 		},
 		methods: {
 			mappingObject: function (object) {
@@ -148,22 +138,18 @@
 			getKey: function (index) {
 				return this.tmpData[index][this.keyName];
 			},
-			generateLink: function (linkType, dataIndex) {
+			generateLink: function (dataIndex) {
 				var key = this.getKey(dataIndex);
+				var that = this;
+				var links = [];
 
-				switch (linkType) {
-					case 'detail':
-						return this.subtituteKey(this.linkDetail, key);
-						break;
-					case 'edit':
-						return this.subtituteKey(this.linkEdit, key);
-						break;
-					case 'delete':
-						return this.subtituteKey(this.linkEdit, key);
-						break;
-				}
+				$.each(this.dataLink, function (index, item) {
+					var tmpItem = $.extend({}, item);
+					tmpItem.link = that.subtituteKey(tmpItem.link, key);
+					links.push(tmpItem);
+				});
 
-				return null;
+				return links;
 			},
 			subtituteKey: function (link, key) {
 				var reg = /{key}/ig;

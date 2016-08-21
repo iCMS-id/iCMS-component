@@ -12,12 +12,15 @@
 	}
 
 	div.dataTables_length label {
+		font-weight: normal;
 		text-align: left;
 		white-space: nowrap;
 	}
 
 	div.dataTables_length select {
+		height: 30px;
 		width: 75px;
+		font-size: 12px;
 		display: inline-block;
 	}
 
@@ -28,51 +31,52 @@
 </style>
 
 <template>
-<div class="row">
-	<div class="col-md-4">
-		<div id="data_length" class="dataTables_length">
-			<label>Show 
-			<select class="form-control" v-model="showCount">
-				<option value="10" selected>10</option>
-				<option value="20">20</option>
-				<option value="50">50</option>
-				<option value="100">100</option>
-			</select>
-			 entries</label>
+	<div class="row">
+		<div class="col-md-4">
+			<div id="data_length" class="dataTables_length">
+				<label>Show 
+				<select class="form-control" v-model="showCount">
+					<option value="10" selected>10</option>
+					<option value="20">20</option>
+					<option value="50">50</option>
+					<option value="100">100</option>
+				</select>
+				 entries</label>
+			</div>
 		</div>
 	</div>
-</div>
-<div class="row">
-	<div class="col-md-12">
-		<table class="table dataTable" :class="className">
-			<thead>
-				<tr>
-					<th v-for="head in header">{{head}}</th>
-				</tr>
-			</thead>
-			<tbody v-if="tmpData.length > 0">
-				<tr is="table-row" v-for="(index, data) in mappedData" :data-row="data" keep-alive>
-					<td is="table-control"
-					:links="generateLink(index)"
-					></td>
-				</tr>
-			</tbody>
-			<tbody v-else>
-				<tr>
-					<td colspan="{{ header.length }}" class="text-center">No data available in table</td>
-				</tr>
-			</tbody>
-		</table>
+	<div class="row">
+		<div class="col-md-12">
+			<table class="table dataTable" :class="className">
+				<thead>
+					<tr>
+						<th v-for="head in header">{{head}}</th>
+					</tr>
+				</thead>
+				<tbody v-if="tmpData.length > 0">
+					<tr is="table-row" v-for="(index, data) in mappedData" :data-row="data" keep-alive :show-control="dataLink.length > 0">
+						<td is="table-control"
+						:links="generateLink(index)"
+						></td>
+					</tr>
+				</tbody>
+				<tbody v-else>
+					<tr>
+						<td colspan="{{ header.length }}" class="text-center">No data available in table</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
 	</div>
-</div>
-<div class="row">
-	<div class="col-md-5">
-		<div class="container-info">Showing {{ start + 1 }} to {{ start + mappedData.length }} of {{ totalCount }} entries</div>
+	<div class="row">
+		<div class="col-md-5">
+			<div class="container-info">Showing {{ start + 1 }} to {{ start + mappedData.length }} of {{ totalCount }} entries</div>
+		</div>
+		<div class="col-md-7">
+			<div is="pagination"></div>
+		</div>
 	</div>
-	<div class="col-md-7">
-		<div is="pagination"></div>
-	</div>
-</div>
+	<slot></slot>
 </template>
 
 <script type="text/javascript">
@@ -89,8 +93,15 @@
 		watch: {
 			showCount: function (val) {
 				this.start = 0;
-				this.$emit('data-should-refresh');
+				this.$emit('data-should-update');
 				this.$broadcast('set-current-page', 1);
+			},
+			mappedData: function (val) {
+				var that = this;
+
+				this.$nextTick(function () {
+					that.$broadcast('data-updated', that.tmpData);
+				});
 			}
 		},
 		props: {
@@ -161,7 +172,7 @@
 			}
 		},
 		events: {
-			'data-should-refresh': function () {
+			'data-should-update': function () {
 				var that = this;
 				var options = {length: that.showCount, start: that.start};
 				var settings = $.extend({}, that.dataOptions, options);
@@ -181,7 +192,7 @@
 			},
 			'page-changed': function (page) {
 				this.start = (page - 1) * this.showCount;
-				this.$emit('data-should-refresh');
+				this.$emit('data-should-update');
 			}
 		}
 	}
